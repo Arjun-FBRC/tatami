@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<script src="data.js"></script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kotoba Note — N5 to N1 Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C1B1A;
+    --washi:#F2ECE1;
+    --washi-2:#EAE2D3;
+    --hanko:#B3402F;
+    --ai:#35507A;
+    --sumi:#6B655C;
+    --bamboo:#5C7A5C;
+    --line: rgba(28,27,26,0.14);
+    --radius: 2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--washi);
+    color:var(--ink);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .jp{font-family:'Shippori Mincho', serif;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  /* ---------- texture ---------- */
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(28,27,26,0.025) 0, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(28,27,26,0.025) 0, transparent 40%);
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:relative; z-index:1;
+    padding:48px 24px 32px;
+    max-width:1080px; margin:0 auto;
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap:24px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:16px;}
+  .stamp{
+    width:56px; height:56px; border:2px solid var(--hanko); border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--hanko); font-family:'Shippori Mincho',serif; font-weight:700; font-size:26px;
+    transform:rotate(-3deg); flex:none;
+  }
+  .brand h1{font-size:28px; margin:0; font-family:'Shippori Mincho',serif; font-weight:700;}
+  .brand p{margin:2px 0 0; color:var(--sumi); font-size:13px; letter-spacing:.04em;}
+
+  nav.levels{display:flex; gap:8px;}
+  .level-btn{
+    padding:10px 18px; border:1.5px solid var(--ink); background:transparent;
+    font-family:'Shippori Mincho',serif; font-weight:700; font-size:15px;
+    cursor:pointer; border-radius:2px; color:var(--ink);
+    transition:background .15s, color .15s;
+  }
+  .level-btn.active{background:var(--ink); color:var(--washi);}
+  .level-btn:hover:not(.active){background:rgba(28,27,26,0.06);}
+
+  /* ---------- tabs + search ---------- */
+  .controls{
+    max-width:1080px; margin:0 auto; padding:0 24px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    position:relative; z-index:1;
+  }
+  .cat-tabs{display:flex; gap:2px; border-bottom:1.5px solid var(--ink);}
+  .cat-tab{
+    padding:10px 16px; background:none; border:none; cursor:pointer;
+    font-size:14px; letter-spacing:.03em; color:var(--sumi); position:relative; top:1.5px;
+    border-bottom:2px solid transparent;
+  }
+  .cat-tab.active{color:var(--ink); font-weight:700; border-bottom:2px solid var(--hanko);}
+  .search-row{display:flex; gap:8px; align-items:center;}
+  #search{
+    padding:9px 12px; border:1.5px solid var(--line); background:#fff;
+    font-family:inherit; font-size:14px; width:220px; border-radius:2px;
+  }
+  #search:focus{outline:none; border-color:var(--ai);}
+  .quiz-btn{
+    padding:9px 16px; background:var(--hanko); color:#fff; border:none;
+    font-size:13px; letter-spacing:.03em; cursor:pointer; border-radius:2px;
+    font-weight:500;
+  }
+  .quiz-btn:hover{opacity:.9;}
+  .tool-btn{
+    padding:9px 12px; background:#fff; color:var(--ink); border:1.5px solid var(--line);
+    font-size:12px; letter-spacing:.02em; cursor:pointer; border-radius:2px;
+    font-weight:500;
+  }
+  .tool-btn.active{background:var(--ink); color:var(--washi); border-color:var(--ink);}
+  .study-stats{font-size:12px; color:var(--sumi); width:100%;}
+
+  /* ---------- grid ---------- */
+  main{max-width:1080px; margin:0 auto; padding:8px 24px 80px; position:relative; z-index:1;}
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:14px;
+  }
+  .grid.list-mode{grid-template-columns:1fr;}
+
+  .theme-section{margin-bottom:24px;}
+  .theme-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:12px;
+  }
+  .theme-title{font-family:'Shippori Mincho',serif; font-size:18px; margin:0;}
+  .theme-count{font-size:12px; color:var(--sumi);}
+  .theme-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:14px;
+  }
+
+  /* genkouyoushi card */
+  .card{
+    background:#fff; border:1.5px solid var(--line); border-radius:2px;
+    padding:14px 12px 10px; cursor:pointer; position:relative;
+    aspect-ratio:1/1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition:border-color .15s, transform .1s;
+    text-align:center;
+  }
+  .card:hover{border-color:var(--ink); transform:translateY(-2px);}
+  .card::before, .card::after{
+    content:""; position:absolute; background:var(--line);
+  }
+  .card::before{ top:50%; left:8px; right:8px; height:1px; } /* horizontal guide */
+  .card::after{ left:50%; top:8px; bottom:8px; width:1px; } /* vertical guide */
+  .card .glyph{font-family:'Shippori Mincho',serif; font-size:34px; font-weight:700; position:relative; z-index:1;}
+  .card .sub{font-size:11px; color:var(--sumi); margin-top:6px; position:relative; z-index:1; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px;}
+  .card.n5-kanji .glyph{font-size:46px; line-height:1.05;}
+  .card.n5-kanji .sub{font-size:13px; color:var(--ink); margin-top:10px;}
+  .card.kana-vocab .glyph{font-size:30px; line-height:1.1; color:var(--ink);}
+  .card.kana-vocab .sub{font-size:14px; color:var(--ink); font-weight:700; margin-top:10px;}
+  .card .seal{
+    position:absolute; top:6px; right:6px; width:14px; height:14px; border-radius:50%;
+    border:1.5px solid var(--hanko); z-index:2; background:transparent;
+  }
+  .card.known .seal{background:var(--hanko);}
+
+  /* vocab/grammar card variant (not square) */
+  .grid[data-cat="vocab"] .card, .grid[data-cat="grammar"] .card{
+    aspect-ratio:auto; padding:16px 14px; align-items:flex-start; text-align:left;
+  }
+  .grid[data-cat="vocab"] .card::before, .grid[data-cat="vocab"] .card::after,
+  .grid[data-cat="grammar"] .card::before, .grid[data-cat="grammar"] .card::after{ content:none; }
+  .grid[data-cat="vocab"] .card .glyph, .grid[data-cat="grammar"] .card .glyph{font-size:20px;}
+  .grid[data-cat="grammar"] .card .glyph{font-family:'JetBrains Mono',monospace; font-size:16px; color:var(--ai);}
+
+  .empty{color:var(--sumi); font-size:14px; padding:40px 0; text-align:center;}
+
+  /* ---------- detail panel ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(28,27,26,0.45); z-index:10;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .overlay.open{display:flex;}
+  .panel{
+    background:var(--washi); max-width:520px; width:100%; max-height:86vh; overflow-y:auto;
+    border-radius:3px; border:1.5px solid var(--ink); padding:32px 28px;
+    position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  }
+  .panel .close{
+    position:absolute; top:16px; right:16px; background:none; border:none; cursor:pointer;
+    font-size:20px; color:var(--sumi); line-height:1;
+  }
+  .panel .glyph-lg{font-family:'Shippori Mincho',serif; font-size:56px; font-weight:700;}
+  .panel .readings{display:flex; gap:14px; margin-top:8px; flex-wrap:wrap;}
+  .readings .tag{font-size:12px; padding:3px 8px; border:1px solid var(--line); border-radius:12px; color:var(--sumi);}
+  .panel .meaning{font-size:18px; font-weight:700; margin-top:14px;}
+  .panel h2.pattern{font-family:'JetBrains Mono',monospace; font-size:22px; color:var(--ai); margin:0;}
+  .section-label{
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--hanko);
+    margin-top:22px; margin-bottom:8px; font-weight:700; display:flex; align-items:center; gap:6px;
+  }
+  .section-label .dot{width:5px; height:5px; background:var(--hanko); border-radius:50%; display:inline-block;}
+  .word-box{background:#fff; border:1px solid var(--line); padding:12px 14px; border-radius:2px;}
+  .word-box .jpline{font-family:'Shippori Mincho',serif; font-size:18px;}
+  .word-box .reading{color:var(--sumi); font-size:13px; margin-top:2px;}
+  .sentence-box{background:#fff; border:1px solid var(--line); padding:14px 14px; border-radius:2px;}
+  .sentence-box .jp{font-size:17px; margin-bottom:4px;}
+  .sentence-box .furi{font-size:12px; color:var(--sumi); margin-bottom:4px;}
+  .sentence-box .romaji{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ai); margin-bottom:4px;}
+  .sentence-box .en{font-size:13px; color:var(--sumi);}
+  .note-box{font-size:13.5px; color:var(--ink); background:var(--washi-2); padding:12px 14px; border-radius:2px; border-left:2px solid var(--hanko);}
+  .mark-btn{
+    margin-top:22px; width:100%; padding:11px; border:1.5px solid var(--ink); background:none;
+    cursor:pointer; font-weight:700; font-size:13px; letter-spacing:.03em; border-radius:2px;
+  }
+  .mark-btn.known{background:var(--ink); color:var(--washi);}
+  .srs-row{margin-top:12px; display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .srs-btn{
+    padding:8px 6px; font-size:11px; background:#fff; border:1.5px solid var(--line);
+    border-radius:2px; cursor:pointer;
+  }
+  .srs-btn.active{border-color:var(--ink); background:var(--ink); color:var(--washi);}
+  .srs-hint{font-size:11px; color:var(--sumi); margin-top:6px;}
+  .en-hidden{filter:blur(4px); user-select:none;}
+  .reveal-btn{margin-top:6px; padding:4px 8px; border:1px solid var(--line); background:#fff; font-size:11px; cursor:pointer; border-radius:2px;}
+
+  /* AI regenerate row */
+  .ai-row{margin-top:18px; border-top:1px dashed var(--line); padding-top:14px;}
+  .ai-row summary{cursor:pointer; font-size:12px; color:var(--sumi); letter-spacing:.02em;}
+  .ai-row input{width:100%; padding:8px 10px; border:1px solid var(--line); font-size:12px; margin:8px 0; border-radius:2px; font-family:'JetBrains Mono',monospace;}
+  .ai-row button{padding:8px 14px; font-size:12px; border:1.5px solid var(--ai); color:var(--ai); background:none; cursor:pointer; border-radius:2px;}
+  .ai-row .warn{font-size:11px; color:var(--sumi); margin-top:6px;}
+  .ai-row .result{margin-top:10px; font-size:13px;}
+
+  /* ---------- quiz ---------- */
+  .quiz-panel{max-width:480px;}
+  .quiz-q{font-size:15px; color:var(--sumi); margin-bottom:6px;}
+  .quiz-glyph{font-family:'Shippori Mincho',serif; font-size:44px; text-align:center; margin:14px 0;}
+  .quiz-opts{display:grid; gap:10px;}
+  .quiz-opt{
+    padding:12px 14px; border:1.5px solid var(--line); background:#fff; text-align:left;
+    cursor:pointer; border-radius:2px; font-size:14px;
+  }
+  .quiz-opt.correct{border-color:var(--bamboo); background:#EFF4EE;}
+  .quiz-opt.wrong{border-color:var(--hanko); background:#F7EBE9;}
+  .quiz-progress{font-size:12px; color:var(--sumi); margin-bottom:12px;}
+  .quiz-score{text-align:center; padding:20px 0;}
+  .quiz-score .big{font-family:'Shippori Mincho',serif; font-size:48px;}
+
+  footer{max-width:1080px; margin:0 auto; padding:20px 24px 60px; color:var(--sumi); font-size:12px; position:relative; z-index:1;}
+
+  @media (max-width:640px){
+    header{padding:32px 16px 20px;}
+    .controls{padding:0 16px 16px;}
+    main{padding:8px 16px 60px;}
+    #search{width:150px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .card{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="stamp">語</div>
+    <div>
+      <h1>Kotoba Note</h1>
+      <p>N5 TO N1 KANJI · VOCAB · GRAMMAR — WITH CURATED EXAMPLES &amp; STUDY NOTES</p>
+    </div>
+  </div>
+  <nav class="levels">
+    <button class="level-btn" data-level="beginner">Beginner</button>
+    <button class="level-btn active" data-level="n5">N5</button>
+    <button class="level-btn" data-level="n4">N4</button>
+    <button class="level-btn" data-level="n3">N3</button>
+    <button class="level-btn" data-level="n2">N2</button>
+    <button class="level-btn" data-level="n1">N1</button>
+  </nav>
+</header>
+
+<div class="controls">
+  <div class="cat-tabs" id="catTabs"></div>
+  <div class="search-row">
+    <input id="search" type="text" placeholder="Search meaning or reading…">
+    <button class="quiz-btn" id="quizBtn">Start Quiz</button>
+    <button class="tool-btn" id="dailyBtn">Daily 20: Off</button>
+    <button class="tool-btn" id="reviewBtn">Review Due: Off</button>
+    <button class="tool-btn" id="hideEnBtn">Hide English: Off</button>
+  </div>
+  <div class="study-stats" id="studyStats"></div>
+</div>
+
+<main>
+  <div id="grid" class="grid" data-cat="kanji"></div>
+</main>
+
+<footer>Complete dataset — N5 to N1 kanji, vocab &amp; grammar with sourced examples and study notes.</footer>
+
+<!-- Detail overlay -->
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+/* ================== STATE ================== */
+const STORAGE_KEY = "kotoba-note-state-v1";
+let state = {
+  level:"n5",
+  cat:"kanji",
+  query:"",
+  known:new Set(),
+  hideEnglish:false,
+  dailyMode:false,
+  reviewMode:false,
+  srs:{}
+};
+
+const JLPT_TABS = [
+  { cat: "kanji", label: "漢字 Kanji" },
+  { cat: "vocab", label: "語彙 Vocab" },
+  { cat: "grammar", label: "文法 Grammar" }
+];
+
+const BEGINNER_TABS = [
+  { cat: "hiragana", label: "ひらがな Hiragana" },
+  { cat: "katakana", label: "カタカナ Katakana" },
+  { cat: "useful_words", label: "Useful Day-to-Day Words" },
+  { cat: "practice", label: "Practice" }
+];
+
+function tabsForLevel(level){
+  return level === "beginner" ? BEGINNER_TABS : JLPT_TABS;
+}
+
+function ensureValidCatForLevel(){
+  const valid = tabsForLevel(state.level).map(t => t.cat);
+  if(!valid.includes(state.cat)){
+    state.cat = valid[0];
+  }
+}
+
+function renderCatTabs(){
+  const catTabs = document.getElementById("catTabs");
+  const tabs = tabsForLevel(state.level);
+  catTabs.innerHTML = tabs
+    .map(t => `<button class="cat-tab ${state.cat===t.cat ? "active" : ""}" data-cat="${t.cat}">${t.label}</button>`)
+    .join("");
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    state.level = parsed.level || state.level;
+    state.cat = parsed.cat || state.cat;
+    state.hideEnglish = !!parsed.hideEnglish;
+    state.dailyMode = !!parsed.dailyMode;
+    state.reviewMode = !!parsed.reviewMode;
+    state.srs = parsed.srs || {};
+    state.known = new Set(parsed.known || []);
+  }catch(_err){
+    // Ignore broken storage payloads.
+  }
+}
+
+function saveState(){
+  const payload = {
+    level: state.level,
+    cat: state.cat,
+    hideEnglish: state.hideEnglish,
+    dailyMode: state.dailyMode,
+    reviewMode: state.reviewMode,
+    srs: state.srs,
+    known: Array.from(state.known)
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function isDue(id){
+  const rec = state.srs[id];
+  return !!(rec && rec.dueAt && rec.dueAt <= Date.now());
+}
+
+function scheduleMs(bucket){
+  if(bucket === "again") return 10 * 60 * 1000;
+  if(bucket === "hard") return 24 * 60 * 60 * 1000;
+  if(bucket === "good") return 3 * 24 * 60 * 60 * 1000;
+  return 7 * 24 * 60 * 60 * 1000;
+}
+
+function setSrsBucket(id, bucket){
+  state.srs[id] = { bucket, dueAt: Date.now() + scheduleMs(bucket) };
+  saveState();
+}
+
+function deterministicRank(id){
+  const day = new Date().toISOString().slice(0,10);
+  const input = day + "|" + id;
+  let h = 0;
+  for(let i=0;i<input.length;i++) h = (h * 31 + input.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function applyStudyModes(items){
+  let out = [...items];
+  if(state.reviewMode){
+    out = out.filter(it => isDue(idOf(it)));
+  }
+  if(state.dailyMode){
+    out = out.sort((a,b)=>deterministicRank(idOf(a)) - deterministicRank(idOf(b))).slice(0,20);
+  }
+  return out;
+}
+
+function englishValue(text){
+  return state.hideEnglish ? "Hidden" : (text || "");
+}
+
+function maybeRevealButton(targetId){
+  if(!state.hideEnglish) return "";
+  return `<button class="reveal-btn" onclick="revealEnglish('${targetId}')">Reveal English</button>`;
+}
+
+function revealEnglish(targetId){
+  const target = document.getElementById(targetId);
+  if(!target) return;
+  target.classList.remove("en-hidden");
+}
+
+window.revealEnglish = revealEnglish;
+
+/* ================== RENDER ================== */
+const grid = document.getElementById("grid");
+
+function currentItems(){
+  const list = DATA[state.level][state.cat];
+  if(!state.query) return applyStudyModes(list);
+  const q = state.query.toLowerCase();
+  return applyStudyModes(list.filter(it=>{
+    const hay = JSON.stringify(it).toLowerCase();
+    return hay.includes(q);
+  }));
+}
+
+function cardMain(it){
+  const englishFirst = state.level === "n5";
+  const kanaVocabThumb = ["n5", "n4", "n3"].includes(state.level);
+  const primaryMeaning = (it.meaning || "")
+    .split(";")[0]
+    .split(",")[0]
+    .trim();
+  if(state.cat==="kanji"){
+    if(englishFirst) return it.char;
+    return it.char;
+  }
+  if(state.cat==="vocab") return kanaVocabThumb ? (it.reading || it.jp) : it.jp;
+  if(state.cat==="useful_words") return it.meaning;
+  if(state.cat==="hiragana" || state.cat==="katakana") return it.char;
+  if(state.cat==="practice") return englishFirst ? it.meaning : it.pattern;
+  return englishFirst ? it.meaning : it.pattern;
+}
+function cardSub(it){
+  const englishFirst = state.level === "n5";
+  const kanaVocabThumb = ["n5", "n4", "n3"].includes(state.level);
+  const primaryMeaning = (it.meaning || "")
+    .split(";")[0]
+    .split(",")[0]
+    .trim();
+  if(state.cat==="kanji"){
+    if(!englishFirst) return it.meaning;
+    const primary = (it.meaning || "")
+      .split(";")[0]
+      .split(",")[0]
+      .trim();
+    if(!primary) return "";
+    return primary.charAt(0).toUpperCase() + primary.slice(1);
+  }
+  if(state.cat==="vocab"){
+    if(kanaVocabThumb) return primaryMeaning || it.meaning || "";
+    return englishFirst ? (primaryMeaning || it.meaning || "") : (it.reading + " · " + it.meaning);
+  }
+  if(state.cat==="useful_words") return it.jp + " · " + it.reading;
+  if(state.cat==="hiragana" || state.cat==="katakana") return it.reading + " · " + it.meaning;
+  if(state.cat==="practice") return englishFirst ? it.pattern : it.meaning;
+  return englishFirst ? it.pattern : it.meaning;
+}
+function idOf(it){
+  return state.level+"-"+state.cat+"-"+(it.char||it.jp||it.pattern);
+}
+
+const THEME_ORDER = [
+  "Numbers and Counting",
+  "Time and Calendar",
+  "Nature and Weather",
+  "People and Body",
+  "Places and Movement",
+  "Home and Daily Life",
+  "School and Work",
+  "Abstract and Function",
+  "Other"
+];
+
+function kanjiTheme(it){
+  const meaning = (it.meaning || "").toLowerCase();
+  const rules = [
+    ["Numbers and Counting", /\b(one|two|three|four|five|six|seven|eight|nine|ten|hundred|thousand|number|counter)\b/],
+    ["Time and Calendar", /\b(day|sun|month|year|time|week|hour|minute|second|morning|night|evening|calendar|season)\b/],
+    ["Nature and Weather", /\b(mountain|river|water|fire|tree|wood|earth|soil|rain|snow|wind|sky|sea|stone|gold|metal|weather|nature)\b/],
+    ["People and Body", /\b(person|man|woman|child|mother|father|body|hand|foot|eye|ear|mouth|heart|mind|face|people)\b/],
+    ["Places and Movement", /\b(go|come|enter|exit|leave|arrive|walk|run|move|up|down|inside|outside|direction|road|way|transport|station|car|vehicle|travel)\b/],
+    ["Home and Daily Life", /\b(house|home|room|food|eat|drink|book|money|clothes|life|daily|shop|store|kitchen)\b/],
+    ["School and Work", /\b(study|school|learn|teacher|student|company|work|office|job|business|society)\b/],
+    ["Abstract and Function", /\b(state|kind|matter|thing|quality|degree|relation|form|change|function|law|system|method|general)\b/]
+  ];
+
+  for (const [theme, re] of rules){
+    if (re.test(meaning)) return theme;
+  }
+  return "Other";
+}
+
+function makeCard(it){
+  const id = idOf(it);
+  const el = document.createElement("div");
+  const isN5Kanji = state.level === "n5" && state.cat === "kanji";
+  const isKanaVocab = ["n5", "n4", "n3"].includes(state.level) && state.cat === "vocab";
+  el.className = "card"
+    + (state.known.has(id) ? " known" : "")
+    + (isN5Kanji ? " n5-kanji" : "")
+    + (isKanaVocab ? " kana-vocab" : "");
+  el.innerHTML = `<span class="seal"></span><div class="glyph">${cardMain(it)}</div><div class="sub">${cardSub(it)}</div>`;
+  el.addEventListener("click", ()=>openDetail(it));
+  return el;
+}
+
+function renderKanjiGrouped(items){
+  const grouped = {};
+  THEME_ORDER.forEach(theme => { grouped[theme] = []; });
+
+  items.forEach(it=>{
+    const theme = kanjiTheme(it);
+    grouped[theme].push(it);
+  });
+
+  grid.innerHTML = "";
+  THEME_ORDER.forEach(theme=>{
+    const arr = grouped[theme];
+    if(!arr || arr.length===0) return;
+
+    const section = document.createElement("section");
+    section.className = "theme-section";
+    section.innerHTML = `
+      <div class="theme-head">
+        <h3 class="theme-title">${theme}</h3>
+        <span class="theme-count">${arr.length} items</span>
+      </div>
+      <div class="theme-grid"></div>
+    `;
+
+    const host = section.querySelector(".theme-grid");
+    arr.forEach(it=>host.appendChild(makeCard(it)));
+    grid.appendChild(section);
+  });
+}
+
+function renderUsefulWordsGrouped(items){
+  const order = ["Greetings", "Essentials", "Navigation", "Shopping and Food", "Time", "Other"];
+  const grouped = {};
+  order.forEach(name => { grouped[name] = []; });
+
+  items.forEach(it=>{
+    const group = it.group || "Other";
+    if(!grouped[group]) grouped[group] = [];
+    grouped[group].push(it);
+  });
+
+  grid.innerHTML = "";
+  order.forEach(group=>{
+    const arr = grouped[group];
+    if(!arr || arr.length===0) return;
+
+    const section = document.createElement("section");
+    section.className = "theme-section";
+    section.innerHTML = `
+      <div class="theme-head">
+        <h3 class="theme-title">${group}</h3>
+        <span class="theme-count">${arr.length} items</span>
+      </div>
+      <div class="theme-grid"></div>
+    `;
+
+    const host = section.querySelector(".theme-grid");
+    arr.forEach(it=>host.appendChild(makeCard(it)));
+    grid.appendChild(section);
+  });
+}
+
+function vocabTheme(it){
+  const text = `${it.meaning || ""} ${it.jp || ""} ${it.reading || ""}`.toLowerCase();
+  const rules = [
+    ["Greetings and Politeness", /\b(hello|good morning|good evening|thanks|thank you|sorry|excuse me|please|greeting|polite|understand|yes|no)\b/],
+    ["People and Family", /\b(person|people|man|woman|child|mother|father|parent|family|friend|teacher|student)\b/],
+    ["Time and Date", /\b(today|tomorrow|yesterday|time|hour|minute|day|week|month|year|morning|night|noon)\b/],
+    ["Food and Drink", /\b(food|meal|rice|water|drink|eat|delicious|restaurant|coffee|tea|lunch|dinner|breakfast)\b/],
+    ["Places and Transport", /\b(station|train|bus|car|road|place|here|there|where|school|office|house|home|room|city|country|travel)\b/],
+    ["Shopping and Money", /\b(shop|store|buy|sell|price|money|yen|how much|cheap|expensive|market)\b/],
+    ["Actions and Verbs", /\b(go|come|see|look|read|write|listen|speak|do|make|use|work|study|learn|walk|run|open|close)\b/],
+    ["Feelings and States", /\b(happy|sad|tired|busy|free|healthy|sick|easy|difficult|good|bad|okay|fine|spirit|feeling)\b/],
+  ];
+
+  for(const [name, re] of rules){
+    if(re.test(text)) return name;
+  }
+  return "Other";
+}
+
+function renderVocabGrouped(items){
+  const order = [
+    "Greetings and Politeness",
+    "People and Family",
+    "Time and Date",
+    "Food and Drink",
+    "Places and Transport",
+    "Shopping and Money",
+    "Actions and Verbs",
+    "Feelings and States",
+    "Other"
+  ];
+  const grouped = {};
+  order.forEach(name => { grouped[name] = []; });
+
+  items.forEach(it=>{
+    const group = vocabTheme(it);
+    grouped[group].push(it);
+  });
+
+  grid.innerHTML = "";
+  order.forEach(group=>{
+    const arr = grouped[group];
+    if(!arr || arr.length===0) return;
+
+    const section = document.createElement("section");
+    section.className = "theme-section";
+    section.innerHTML = `
+      <div class="theme-head">
+        <h3 class="theme-title">${group}</h3>
+        <span class="theme-count">${arr.length} items</span>
+      </div>
+      <div class="theme-grid"></div>
+    `;
+
+    const host = section.querySelector(".theme-grid");
+    arr.forEach(it=>host.appendChild(makeCard(it)));
+    grid.appendChild(section);
+  });
+}
+
+function renderKanaRows(items){
+  const rowMap = new Map();
+  items.forEach(it=>{
+    const row = (it.row || "").replace(/,/g, "").trim() || "other";
+    if(!rowMap.has(row)) rowMap.set(row, []);
+    rowMap.get(row).push(it);
+  });
+
+  const hiraRowLabel = {
+    a: "あ行",
+    k: "か行",
+    s: "さ行",
+    t: "た行",
+    n: "な行",
+    h: "は行",
+    m: "ま行",
+    y: "や行",
+    r: "ら行",
+    w: "わ行"
+  };
+
+  const kataRowLabel = {
+    a: "ア行",
+    k: "カ行",
+    s: "サ行",
+    t: "タ行",
+    n: "ナ行",
+    h: "ハ行",
+    m: "マ行",
+    y: "ヤ行",
+    r: "ラ行",
+    w: "ワ行"
+  };
+
+  function kanaRowLabel(row){
+    const first = (row.split(" ")[0] || "").toLowerCase();
+    const key = first.startsWith("w") ? "w" : first.charAt(0);
+    if(state.cat === "katakana") return kataRowLabel[key] || "カナ";
+    return hiraRowLabel[key] || "かな";
+  }
+
+  grid.innerHTML = "";
+  for(const [row, arr] of rowMap.entries()){
+    const section = document.createElement("section");
+    section.className = "theme-section";
+    section.innerHTML = `
+      <div class="theme-head">
+        <h3 class="theme-title">${kanaRowLabel(row)}</h3>
+        <span class="theme-count">${arr.length} chars</span>
+      </div>
+      <div class="theme-grid"></div>
+    `;
+    const host = section.querySelector(".theme-grid");
+    arr.forEach(it=>host.appendChild(makeCard(it)));
+    grid.appendChild(section);
+  }
+}
+
+function render(){
+  grid.dataset.cat = state.cat;
+  const items = currentItems();
+  grid.innerHTML = "";
+  if(state.cat === "kanji" || state.cat === "vocab" || state.cat === "useful_words" || state.cat === "hiragana" || state.cat === "katakana") grid.classList.add("list-mode");
+  else grid.classList.remove("list-mode");
+
+  if(items.length===0){
+    grid.innerHTML = '<div class="empty">No matches. Try a different search term.</div>';
+    return;
+  }
+
+  if(state.cat === "kanji"){
+    renderKanjiGrouped(items);
+    updateStudyStats(items.length);
+    return;
+  }
+
+  if(state.cat === "useful_words"){
+    renderUsefulWordsGrouped(items);
+    updateStudyStats(items.length);
+    return;
+  }
+
+  if(state.cat === "vocab"){
+    renderVocabGrouped(items);
+    updateStudyStats(items.length);
+    return;
+  }
+
+  if(state.cat === "hiragana" || state.cat === "katakana"){
+    renderKanaRows(items);
+    updateStudyStats(items.length);
+    return;
+  }
+
+  items.forEach(it=>grid.appendChild(makeCard(it)));
+  updateStudyStats(items.length);
+}
+
+function updateStudyStats(visibleCount){
+  const stats = document.getElementById("studyStats");
+  const pool = DATA[state.level][state.cat] || [];
+  const dueCount = pool.filter(it => isDue(idOf(it))).length;
+  const modeBits = [];
+  if(state.dailyMode) modeBits.push("Daily 20");
+  if(state.reviewMode) modeBits.push("Review Due");
+  if(modeBits.length === 0) modeBits.push("Browse");
+  stats.textContent = `${state.level.toUpperCase()} · ${state.cat} · ${modeBits.join(" + ")} · showing ${visibleCount}/${pool.length} · due ${dueCount}`;
+}
+
+function syncControlButtons(){
+  const dailyBtn = document.getElementById("dailyBtn");
+  const reviewBtn = document.getElementById("reviewBtn");
+  const hideEnBtn = document.getElementById("hideEnBtn");
+
+  dailyBtn.textContent = `Daily 20: ${state.dailyMode ? "On" : "Off"}`;
+  reviewBtn.textContent = `Review Due: ${state.reviewMode ? "On" : "Off"}`;
+  hideEnBtn.textContent = `Hide English: ${state.hideEnglish ? "On" : "Off"}`;
+
+  dailyBtn.classList.toggle("active", state.dailyMode);
+  reviewBtn.classList.toggle("active", state.reviewMode);
+  hideEnBtn.classList.toggle("active", state.hideEnglish);
+}
+
+/* ================== DETAIL PANEL ================== */
+const overlay = document.getElementById("overlay");
+const panel = document.getElementById("panel");
+let activeItem = null;
+
+function openDetail(it){
+  activeItem = it;
+  const id = idOf(it);
+  const isKnown = state.known.has(id);
+  let html = `<button class="close" onclick="closeDetail()">&times;</button>`;
+
+  if(state.cat==="kanji"){
+    const enId = `en-kanji-${id}`;
+    html += `
+      <div class="glyph-lg">${it.char}</div>
+      <div class="readings">
+        <span class="tag mono">On: ${it.on}</span>
+        <span class="tag mono">Kun: ${it.kun}</span>
+      </div>
+      <div class="meaning">${it.meaning}</div>
+      <div class="section-label"><span class="dot"></span>Example word</div>
+      <div class="word-box"><div class="jpline">${it.word.jp} <span class="mono" style="font-size:13px;color:var(--sumi)">(${it.word.reading})</span></div><div class="reading ${state.hideEnglish ? "en-hidden" : ""}" id="${enId}">${englishValue(it.word.en)}</div>${maybeRevealButton(enId)}</div>
+      <div class="section-label"><span class="dot"></span>Study note</div>
+      <div class="note-box">${it.note}</div>
+    `;
+  } else if(state.cat==="vocab" || state.cat==="useful_words"){
+    const enId = `en-vocab-${id}`;
+    html += `
+      <div class="glyph-lg" style="font-size:36px">${it.jp}</div>
+      <div class="readings"><span class="tag mono">${it.reading}</span></div>
+      <div class="meaning">${it.meaning}</div>
+      <div class="section-label"><span class="dot"></span>Example sentence</div>
+      <div class="sentence-box">
+        <div class="jp">${it.sentence.jp}</div>
+        ${it.sentence.furigana ? `<div class="furi">${it.sentence.furigana}</div>` : ""}
+        ${it.sentence.romaji ? `<div class="romaji">${it.sentence.romaji}</div>` : ""}
+        <div class="en ${state.hideEnglish ? "en-hidden" : ""}" id="${enId}">${englishValue(it.sentence.en)}</div>
+        ${maybeRevealButton(enId)}
+      </div>
+      <div class="section-label"><span class="dot"></span>Study note</div>
+      <div class="note-box">${it.note}</div>
+    `;
+  } else if(state.cat==="grammar" || state.cat==="practice"){
+    const enId = `en-grammar-${id}`;
+    html += `
+      <h2 class="pattern">${it.pattern}</h2>
+      <div class="meaning">${it.meaning}</div>
+      <div class="section-label"><span class="dot"></span>Structure</div>
+      <div class="word-box mono" style="font-size:13px">${it.structure}</div>
+      <div class="section-label"><span class="dot"></span>Example sentence</div>
+      <div class="sentence-box">
+        <div class="jp">${it.sentence.jp}</div>
+        ${it.sentence.furigana ? `<div class="furi">${it.sentence.furigana}</div>` : ""}
+        ${it.sentence.romaji ? `<div class="romaji">${it.sentence.romaji}</div>` : ""}
+        <div class="en ${state.hideEnglish ? "en-hidden" : ""}" id="${enId}">${englishValue(it.sentence.en)}</div>
+        ${maybeRevealButton(enId)}
+      </div>
+      <div class="section-label"><span class="dot"></span>Study note</div>
+      <div class="note-box">${it.note}</div>
+    `;
+  } else if(state.cat==="hiragana" || state.cat==="katakana"){
+    const enId = `en-kana-${id}`;
+    html += `
+      <div class="glyph-lg">${it.char}</div>
+      <div class="readings"><span class="tag mono">${it.reading}</span></div>
+      <div class="meaning">${it.meaning}</div>
+      <div class="section-label"><span class="dot"></span>Row</div>
+      <div class="word-box mono" style="font-size:13px">${it.row || "-"}</div>
+      <div class="section-label"><span class="dot"></span>Example</div>
+      <div class="sentence-box">
+        <div class="jp">${it.example?.jp || it.char}</div>
+        <div class="romaji">${it.example?.romaji || it.reading}</div>
+        <div class="en ${state.hideEnglish ? "en-hidden" : ""}" id="${enId}">${englishValue(it.example?.en || "")}</div>
+        ${maybeRevealButton(enId)}
+      </div>
+      <div class="section-label"><span class="dot"></span>Study note</div>
+      <div class="note-box">${it.note}</div>
+    `;
+  }
+
+  html += `<button class="mark-btn ${isKnown?'known':''}" id="markBtn">${isKnown? '✓ Marked as known — click to unmark' : 'Mark as known'}</button>`;
+  const srs = state.srs[id];
+  html += `
+    <div class="srs-row" id="srsRow">
+      <button class="srs-btn ${srs && srs.bucket==='again' ? 'active' : ''}" data-bucket="again">Again (10m)</button>
+      <button class="srs-btn ${srs && srs.bucket==='hard' ? 'active' : ''}" data-bucket="hard">Hard (1d)</button>
+      <button class="srs-btn ${srs && srs.bucket==='good' ? 'active' : ''}" data-bucket="good">Good (3d)</button>
+      <button class="srs-btn ${srs && srs.bucket==='easy' ? 'active' : ''}" data-bucket="easy">Easy (7d)</button>
+    </div>
+    <div class="srs-hint">Review buckets schedule your next due review time.</div>
+  `;
+
+  html += `
+    <details class="ai-row">
+      <summary>Regenerate this example with your own AI key (optional)</summary>
+      <input id="apiKey" type="password" placeholder="sk-ant-... (used only in this browser tab)">
+      <button id="regenBtn">Regenerate example sentence</button>
+      <div class="warn">Your key is never stored or sent anywhere except directly to Anthropic's API from your browser. Don't use this on a publicly deployed site — anyone could read the key from network traffic. Fine for local/personal use.</div>
+      <div class="result" id="aiResult"></div>
+    </details>
+  `;
+
+  panel.innerHTML = html;
+  overlay.classList.add("open");
+
+  document.getElementById("markBtn").addEventListener("click", ()=>{
+    if(state.known.has(id)){ state.known.delete(id); } else { state.known.add(id); }
+    saveState();
+    openDetail(it); // re-render panel
+    render();
+  });
+
+  document.querySelectorAll("#srsRow .srs-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const bucket = btn.dataset.bucket;
+      setSrsBucket(id, bucket);
+      openDetail(it);
+      render();
+    });
+  });
+
+  document.getElementById("regenBtn").addEventListener("click", regenerateExample);
+}
+
+function closeDetail(){
+  overlay.classList.remove("open");
+  activeItem = null;
+}
+overlay.addEventListener("click", (e)=>{ if(e.target===overlay) closeDetail(); });
+document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeDetail(); });
+
+async function regenerateExample(){
+  const key = document.getElementById("apiKey").value.trim();
+  const resultBox = document.getElementById("aiResult");
+  if(!key){ resultBox.textContent = "Enter an API key first."; return; }
+  resultBox.textContent = "Thinking…";
+  const subject = state.cat==="kanji" ? activeItem.char : (state.cat==="vocab" ? activeItem.jp : activeItem.pattern);
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "x-api-key": key, "anthropic-version":"2023-06-01" },
+      body: JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:300,
+        messages:[{role:"user", content:`Give one new, natural JLPT-level example sentence using "${subject}" in Japanese. Reply as JSON only: {"jp":"...","romaji":"...","en":"..."}`}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(b=>b.text||"").join("");
+    const parsed = JSON.parse(text.replace(/```json|```/g,"").trim());
+    resultBox.innerHTML = `<div class="sentence-box"><div class="jp">${parsed.jp}</div><div class="romaji mono">${parsed.romaji}</div><div class="en">${parsed.en}</div></div>`;
+  }catch(err){
+    resultBox.textContent = "Couldn't reach the API — check your key or CORS settings for direct browser calls.";
+  }
+}
+
+/* ================== QUIZ ================== */
+document.getElementById("quizBtn").addEventListener("click", startQuiz);
+
+function startQuiz(){
+  const pool = DATA[state.level][state.cat];
+  if(pool.length < 4){ alert("Not enough items in this set for a quiz yet."); return; }
+  const questions = shuffle([...pool]).slice(0, Math.min(10, pool.length)).map(q=>{
+    const wrongPool = shuffle(pool.filter(p=>p!==q)).slice(0,3);
+    const options = shuffle([q, ...wrongPool]);
+    return { q, options };
+  });
+  let idx = 0, score = 0;
+
+  function renderQ(){
+    if(idx >= questions.length){ renderScore(); return; }
+    const {q, options} = questions[idx];
+    const prompt = state.cat==="kanji"
+      ? q.char
+      : ((state.cat==="vocab" || state.cat==="useful_words")
+        ? q.jp
+        : ((state.cat==="hiragana" || state.cat==="katakana") ? q.char : q.pattern));
+    panel.innerHTML = `
+      <button class="close" onclick="closeDetail()">&times;</button>
+      <div class="quiz-progress">Question ${idx+1} / ${questions.length} · Score: ${score}</div>
+      <div class="quiz-glyph">${prompt}</div>
+      <div class="quiz-q">What does this mean?</div>
+      <div class="quiz-opts">
+        ${options.map((o,i)=>`<button class="quiz-opt" data-i="${i}">${o.meaning}</button>`).join("")}
+      </div>
+    `;
+    panel.className = "panel quiz-panel";
+    overlay.classList.add("open");
+    document.querySelectorAll(".quiz-opt").forEach((btn,i)=>{
+      btn.addEventListener("click", ()=>{
+        document.querySelectorAll(".quiz-opt").forEach(b=>b.disabled=true);
+        const chosen = options[i];
+        if(chosen===q){ btn.classList.add("correct"); score++; }
+        else{
+          btn.classList.add("wrong");
+          const correctBtn = [...document.querySelectorAll(".quiz-opt")][options.indexOf(q)];
+          correctBtn.classList.add("correct");
+        }
+        setTimeout(()=>{ idx++; renderQ(); }, 900);
+      });
+    });
+  }
+
+  function renderScore(){
+    panel.innerHTML = `
+      <button class="close" onclick="closeDetail()">&times;</button>
+      <div class="quiz-score">
+        <div class="big">${score} / ${questions.length}</div>
+        <p style="color:var(--sumi)">Nice work. Try another level or category any time.</p>
+        <button class="mark-btn" onclick="closeDetail()">Done</button>
+      </div>
+    `;
+  }
+  panel.className = "panel quiz-panel";
+  renderQ();
+}
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/* ================== EVENTS ================== */
+document.querySelectorAll(".level-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".level-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    state.level = btn.dataset.level;
+    ensureValidCatForLevel();
+    renderCatTabs();
+    saveState();
+    render();
+  });
+});
+document.getElementById("catTabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".cat-tab");
+  if(!btn) return;
+  state.cat = btn.dataset.cat;
+  panel.className = "panel";
+  renderCatTabs();
+  saveState();
+  render();
+});
+document.getElementById("search").addEventListener("input", (e)=>{
+  state.query = e.target.value;
+  render();
+});
+
+document.getElementById("dailyBtn").addEventListener("click", ()=>{
+  state.dailyMode = !state.dailyMode;
+  if(state.dailyMode) state.reviewMode = false;
+  saveState();
+  syncControlButtons();
+  render();
+});
+
+document.getElementById("reviewBtn").addEventListener("click", ()=>{
+  state.reviewMode = !state.reviewMode;
+  if(state.reviewMode) state.dailyMode = false;
+  saveState();
+  syncControlButtons();
+  render();
+});
+
+document.getElementById("hideEnBtn").addEventListener("click", ()=>{
+  state.hideEnglish = !state.hideEnglish;
+  saveState();
+  syncControlButtons();
+  if(activeItem) openDetail(activeItem);
+  render();
+});
+
+loadState();
+ensureValidCatForLevel();
+document.querySelector(`.level-btn[data-level="${state.level}"]`)?.classList.add("active");
+document.querySelectorAll(".level-btn").forEach(b=>{
+  if(b.dataset.level !== state.level) b.classList.remove("active");
+});
+renderCatTabs();
+syncControlButtons();
+
+render();
+</script>
+</body>
+</html>
